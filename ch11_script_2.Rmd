@@ -1,6 +1,8 @@
 ---
 title: 'Chapter 11: Univariate Regression'
-output: html_document
+output: 
+  html_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -49,11 +51,44 @@ How can we check to make sure that the rows in `data` are different, as they sho
 
 And, yes, it is somewhat awkward that `nest()` produces a column called `data` and that "data" is such a common term used in many places in R. We just need to keep track of things, even when they have the same names. Life is hard!
 
+```{r, cache=TRUE}
+
+nreps = 3
+
+# county_bootstrap <- tibble(index = 1:nreps, 
+#                            data = map(index, ~ rep_sample_n(county, size = 3129, replace = TRUE, reps = 1))) %>%
+#   mutate(distinct_rows = map_dbl(data, ~ n_distinct(.)))
+# 
+# view(county_bootstrap)
+
+county_bootstrap_2 <- rep_sample_n(county, size = 3129, replace = TRUE, reps = nreps) %>% 
+  group_by(replicate) %>% 
+  nest() %>%
+  mutate(distinct_rows = map_dbl(data, ~ n_distinct(.)))
+
+View(county_bootstrap_2)
+
+
+```
+
+
 
 
 # Scene 10 
 
-**Prompt**  Now, using the starter code above, go ahead and add more columns. Make one called `mod` which will contains the model objects created by `lm()`. Then, add one called `reg_results` which will tidy the objects created by `lm()`, and then one called `disp_coef` which will display the regression coefficient for each bootstrap sample. Is all this a mystery? Check out chapter 11 in the *Primer*. 
+**Prompt**  Now, using the starter code above, go ahead and add more columns. Make one called `mod` which will contains the model objects created by `lm()`. Then, add one called `reg_results` which will tidy the objects created by `lm()`, and then one called `disp_coef` which will display the regression coefficient for each bootstrap sample. Is all this a mystery? Check out chapter 11 in the *Primer*.
+
+```{r}
+
+county_bootstrap_2 <- county_bootstrap_2 %>%
+  mutate(mod = map(data, ~ lm(poverty ~ less_than_hs, data = .))) %>%
+  mutate(reg_results = map(mod, ~tidy(.)))
+
+view(county_bootstrap_2)
+
+
+```
+
 
 # Scene 11 
 
